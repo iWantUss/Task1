@@ -30,23 +30,16 @@ public class MatchMaker {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        // TODO code application logic here
-                
-        count = 1;
+    public static void main(String[] args) {        
         
-        //Количество команд
-        for (int i = 0; i < 500; i++) {
-            for (int j = 0; j < maxPlayers; j++) {
-                int rank = (int)(1+(Math.random()*30));
-                    //rank = (int)(1+(Math.random()*rank));
+        for (int i = 0; i < 100; i++) {//Количество команд
+            for (int j = 0; j < MAX_PLAYERS; j++) {
+                int rank = (int)(1+(Math.random()*30)); //генерация уровня нового игрока
                     
-                    addPlayer("["+i+"-"+j+"]", rank);
+                    registrateNewPlayer("["+i+"-"+j+"]", rank);
             }
-        }
-        //mm.matches.forEach(val -> val.printMatch());
-        
-            matchmaking();
+        }        
+        matchmaking();
         
         
         
@@ -56,29 +49,30 @@ public class MatchMaker {
     /**
      * Максимальное количество игроков в матче
      */
-    private static final int maxPlayers = 64;
-    /**
-     * количество созданных матчей
-     */
-    private static int count = 0;
-    
+    private static final int MAX_PLAYERS = 8;    
     
     /**
      * Список матчей
      */
     private static List<Match> matches = new ArrayList<>();
     
-    public static void addPlayer(String UID, Integer rank){
+    /**
+     * Регистрирует нового пользователя и решает
+     * добавить ли его в существующий матч или
+     * создать для него новый, потому что он не подходит условиям матча.
+     * @param UID
+     * @param rank 
+     */
+    public static void  registrateNewPlayer(String UID, Integer rank){
         Player pl = new Player(UID, rank);
         for (Iterator<Match> it = matches.iterator(); it.hasNext();) {
             Match match = it.next();
-            if(match.size()==0){
+            if(match.isEmpty()){
                 it.remove();
                 continue;
             }
-            if(match.size()==maxPlayers){
-                System.out.print(""+(count++)+" ");
-                match.printMatch();
+            if(match.size()==MAX_PLAYERS){
+                match.printAndRemovePlayers();
                 continue;
             }
             if(match.addPlayer(pl)){
@@ -88,7 +82,50 @@ public class MatchMaker {
         matches.add(new Match(pl));
     }
     
-    private static boolean addPlayer(Player pl){        
+    
+    /**
+     * Метод объединяющий созданные матчи до тех пор, пока
+     * список матчей не станет пустым
+     */
+    private static void matchmaking() {
+        int countMatches = matches.size();
+        while(countMatches!=1)
+        for (int i = 1; i < countMatches; i++) {
+            
+            //Производим цикл по игрокам i-ой команды
+            while (!matches.get(i).isEmpty()) {
+                if(replacePlayer(matches.get(i).players.peek())){
+                    matches.get(i).players.poll();
+                }
+                else {i--;break;}
+            }
+            if(matches.get(i).isEmpty()){
+                matches.remove(i);
+                countMatches--;i--;
+                break;
+            }
+            if(matches.get(i).size()==MAX_PLAYERS){
+                matches.get(i).printAndRemovePlayers();
+                i--;
+            }
+            
+            
+        }
+        
+        if(matches.get(0).isEmpty()){
+            matches.remove(0);
+        }
+            
+        if(matches.get(0).size()==MAX_PLAYERS){
+            matches.get(0).printAndRemovePlayers();    
+        }
+    }
+    /**
+     * Перемещает игрока в самый старый матч, которому он соответствует
+     * @param pl перемещаемый игрок
+     * @return true если игрок был перемещен в новый матч
+     */
+    private static boolean replacePlayer(Player pl){        
         
         for (Iterator<Match> it = matches.iterator(); it.hasNext();) {
             Match match = it.next();
@@ -96,9 +133,8 @@ public class MatchMaker {
                 it.remove();
                 return false;
             }
-            if(match.size()==maxPlayers){
-                System.out.print(""+(count++)+" ");
-                match.printMatch();
+            if(match.size()==MAX_PLAYERS){
+                match.printAndRemovePlayers();
                 return false;
             }
             return match.addPlayer(pl);
@@ -106,45 +142,5 @@ public class MatchMaker {
         }
         matches.add(new Match(pl));
         return true;
-    }
-
-    private static void matchmaking() {
-        int countMatches = matches.size();
-        while(countMatches!=1)
-        for (int i = 1; i < countMatches; i++) {
-            
-            //Производим цикл по игрокам i-ой команды
-            while (!matches.get(i).players.isEmpty()) {
-                if(!addPlayer(matches.get(i).players.peek())){i--;break;}
-                else {
-                    
-                    matches.get(i)
-                            .players.poll();
-                    
-                }
-            }
-            if(matches.get(i).size()==0){
-                matches.remove(i);
-                countMatches--;i--;
-                break;
-            }
-            if(matches.get(i).size()==maxPlayers){
-                System.out.print(""+(count++)+" ");
-                matches.get(i).printMatch();
-                i--;
-                continue;
-            }
-            
-            
-        }
-        
-        if(matches.get(0).size()==0){
-                matches.remove(0);
-            }
-            if(matches.get(0).size()==maxPlayers){
-                System.out.print(""+(count++)+" ");
-                matches.get(0).printMatch();
-                
-            }
     }
 }

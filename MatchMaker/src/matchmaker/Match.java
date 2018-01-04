@@ -20,36 +20,20 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 /**
- *
+ * Матч из игроков
  * @author iwantuss
  */
-class Match {
-    /**
-     * Средний уровень игроков в матче
-     */
-    private Integer AvgRank;
-    
+class Match {    
     /**
      * Список игроков в матче
      */
     public Queue<Player> players;
-    
-    /**
-     * Дата создания матча
-     */
-    private Long DateOfCreation;
-    
-    /**
-     * Создатель матча
-     */
-    private Player creator;
 
     /**
      * Инициализация матча
      * @param creator 
      */
     public Match(Player creator) {
-        this.creator = creator;
         players = new PriorityQueue<>((Player first, Player second) -> {
             if(first.getDateOfRegistration()>second.getDateOfRegistration()){
                 return 1;
@@ -59,8 +43,6 @@ class Match {
         }
         );
         players.add(creator);
-        
-        DateOfCreation = System.currentTimeMillis();
     }
     
     /**
@@ -77,7 +59,7 @@ class Match {
      * @return true - если игрок был добавлен
      */
     public boolean addPlayer(Player player){
-        return playerMeetsTheConditions(player)?players.add(player):false;
+        return playerMeetsTheConditions(player) ? players.add(player) : false;
     }
     
     /**
@@ -88,6 +70,7 @@ class Match {
     private boolean playerMeetsTheConditions(Player pl){
         for (Player player : players) {
             int diffRank = Math.abs(player.getRank()-pl.getRank());
+            if(diffRank==0)continue;
             double sumWaiting = player.getWaitingTime()+pl.getWaitingTime();
             if(diffRank>sumWaiting/5000)return false;
         }
@@ -100,8 +83,19 @@ class Match {
     int size() {
         return players.size();
     }
+    /**
+     * @return false если матч пуст (в нем нет игроков)
+     */
+    boolean isEmpty(){
+        return players.isEmpty();
+    }
     
-    public void printMatch(){
+    /**
+     * Выводит в консоль {@see #getTimeCreationMatch время создания матча}
+     * и выводит {@see Player#printPlayer данные игроков} в порядке добавления в матч
+     * после чего удаляет их из очереди.
+     */
+    public void printAndRemovePlayers(){
         System.out.print(this.getTimeCreationMatch()+"ms ");
         while(!players.isEmpty())
             players.poll().printPlayer();

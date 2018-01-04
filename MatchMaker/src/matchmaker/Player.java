@@ -17,43 +17,62 @@
 package matchmaker;
 
 /**
- *
+ * Игрок
  * @author iwantuss
  */
 class Player {
     /**
      * Уникальный идентификатор пользователя
      */
-    private String UID;
+    private final String UID;
     
     /**
      * Уровень игрока
      */
-    private Integer Rank;
+    private final Integer Rank;
     
     /**
      * Дата регистрации игрока
      */
-    private Long DateOfRegistration;
+    private final Long DateOfRegistration;
 
+    /**
+     * Регистрация игрока в системе
+     * @param UID
+     * @param Rank 
+     * @see Player#UID
+     * @see Player#Rank
+     */
     public Player(String UID, Integer Rank) {
         this.UID = UID;
         this.Rank = Rank;
         DateOfRegistration = System.currentTimeMillis();
     }
-    
+    /**
+     * @return время ожидания игрока с момента регистрации
+     * @see #DateOfRegistration
+     */
     public Long getWaitingTime(){
         return System.currentTimeMillis() - DateOfRegistration;
     }
 
+    /**
+     * @return уровень игрока
+     * @see #Rank
+     */
     public Integer getRank() {
         return Rank;
     }
 
+    /**
+     * Выводит в консоль {@see #UID UID игрока}
+     */
     void printPlayer() {
-        System.out.print(UID+"("+Rank+")");
+        System.out.print(UID);
     }
-
+    /**
+     * @return {@see #DateOfRegistration дату регистрации игрока в системе}
+     */
     public Long getDateOfRegistration() {
         return DateOfRegistration;
     }
