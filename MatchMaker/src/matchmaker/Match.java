@@ -71,7 +71,7 @@ class Match {
             int diffRank = Math.abs(player.getRank()-pl.getRank());
             if(diffRank==0)return true;
             double sumWaiting = player.getWaitingTime()+pl.getWaitingTime();
-            return diffRank <= sumWaiting/50;
+            return diffRank <= sumWaiting/5000;
         });
         
     }
@@ -95,7 +95,8 @@ class Match {
      * после чего удаляет их из очереди.
      */
     public void printAndRemove(){
-        System.out.print(this.getTimeCreationMatch()+"ms ");
+        
+        System.out.print("["+(MatchMaker.COUNT++)+"]"+this.getTimeCreationMatch()+"ms ");
         while(!players.isEmpty())
             players.poll().printPlayer();
         System.out.println("");

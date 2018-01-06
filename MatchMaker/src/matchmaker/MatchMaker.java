@@ -19,6 +19,7 @@ package matchmaker;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 
 /**
@@ -32,7 +33,8 @@ public class MatchMaker {
      */
     public static void main(String[] args) {        
         
-        for (int i = 0; i < 500; i++) {//Количество команд
+        
+        for (int i = 0; i < 1000; i++) {//Количество команд
             for (int j = 0; j < MAX_PLAYERS; j++) {
                 int rank = (int)(1+(Math.random()*30)); //генерация уровня нового игрока
                     
@@ -50,6 +52,10 @@ public class MatchMaker {
      * Максимальное количество игроков в матче
      */
     private static final int MAX_PLAYERS = 8;    
+    /**
+     * Максимальное количество игроков в матче
+     */
+    public static int COUNT = 1;    
     
     /**
      * Список матчей
@@ -76,7 +82,7 @@ public class MatchMaker {
                     return match.addPlayer(pl);
                 }))
             matches.add(new Match(pl));
-        
+        Finisher();
     }
     
     
@@ -85,36 +91,20 @@ public class MatchMaker {
      * список матчей не станет пустым
      */
     private static void matchmaking() {
-        while(matches.size()!=1)
-        for (int i = 1; i < matches.size(); i++) {
-            
-            //Производим цикл по игрокам i-ой команды
-            while (!matches.get(i).isEmpty()) {
-                if(replacePlayer(matches.get(i).players.peek())){
-                    matches.get(i).players.poll();
+        while(matches.size()>1)
+            for (int i = 1; i < matches.size(); i++) {
+                //Производим цикл по игрокам i-ой команды
+                while (!matches.get(i).isEmpty()) {
+                    if(replacePlayer(matches.get(i).players.peek())){
+                        matches.get(i).players.poll();
+                    }
+                    else {i--;break;}
                 }
-                else {i--;break;}
+                
+
+Finisher();
             }
-            if(matches.get(i).isEmpty()){
-                matches.remove(i);
-                i--;
-                break;
-            }
-            if(matches.get(i).size()==MAX_PLAYERS){
-                matches.get(i).printAndRemove();
-                i--;
-            }
-            
-            
-        }
         
-        if(matches.get(0).isEmpty()){
-            matches.remove(0);
-        }
-            
-        if(matches.get(0).size()==MAX_PLAYERS){
-            matches.get(0).printAndRemove();    
-        }
     }
     /**
      * Перемещает игрока в самый старый матч, которому он соответствует
@@ -124,6 +114,7 @@ public class MatchMaker {
     private static boolean replacePlayer(Player pl){        
         
         for (Iterator<Match> it = matches.iterator(); it.hasNext();) {
+            
             Match match = it.next();
             if(match.size()==0){
                 it.remove();
@@ -136,7 +127,20 @@ public class MatchMaker {
             return match.addPlayer(pl);
             
         }
+        Finisher();
         matches.add(new Match(pl));
         return true;
+    }
+    
+    /**
+     * Удаляет пустые матчи и выводит на экран заполненые
+     */
+    private static void Finisher(){
+        matches.removeIf((match)-> {
+                    if(match.size()==MAX_PLAYERS){
+                        match.printAndRemove();
+                    }
+                    return match.isEmpty();
+        });
     }
 }
