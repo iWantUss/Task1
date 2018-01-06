@@ -32,7 +32,7 @@ public class MatchMaker {
      */
     public static void main(String[] args) {        
         
-        for (int i = 0; i < 100; i++) {//Количество команд
+        for (int i = 0; i < 500; i++) {//Количество команд
             for (int j = 0; j < MAX_PLAYERS; j++) {
                 int rank = (int)(1+(Math.random()*30)); //генерация уровня нового игрока
                     
@@ -65,21 +65,18 @@ public class MatchMaker {
      */
     public static void  registrateNewPlayer(String UID, Integer rank){
         Player pl = new Player(UID, rank);
-        for (Iterator<Match> it = matches.iterator(); it.hasNext();) {
-            Match match = it.next();
-            if(match.isEmpty()){
-                it.remove();
-                continue;
-            }
-            if(match.size()==MAX_PLAYERS){
-                match.printAndRemovePlayers();
-                continue;
-            }
-            if(match.addPlayer(pl)){
-                return;
-            }
-        }
-        matches.add(new Match(pl));
+        
+        if(!matches.parallelStream()
+                .filter((match) -> {//Матч должен быть и не пустым, и не полным
+                    if(match.size()==MAX_PLAYERS){
+                        match.printAndRemove();
+                    }
+                    return !match.isEmpty();
+                }).anyMatch((match) -> {
+                    return match.addPlayer(pl);
+                }))
+            matches.add(new Match(pl));
+        
     }
     
     
@@ -88,9 +85,8 @@ public class MatchMaker {
      * список матчей не станет пустым
      */
     private static void matchmaking() {
-        int countMatches = matches.size();
-        while(countMatches!=1)
-        for (int i = 1; i < countMatches; i++) {
+        while(matches.size()!=1)
+        for (int i = 1; i < matches.size(); i++) {
             
             //Производим цикл по игрокам i-ой команды
             while (!matches.get(i).isEmpty()) {
@@ -101,11 +97,11 @@ public class MatchMaker {
             }
             if(matches.get(i).isEmpty()){
                 matches.remove(i);
-                countMatches--;i--;
+                i--;
                 break;
             }
             if(matches.get(i).size()==MAX_PLAYERS){
-                matches.get(i).printAndRemovePlayers();
+                matches.get(i).printAndRemove();
                 i--;
             }
             
@@ -117,7 +113,7 @@ public class MatchMaker {
         }
             
         if(matches.get(0).size()==MAX_PLAYERS){
-            matches.get(0).printAndRemovePlayers();    
+            matches.get(0).printAndRemove();    
         }
     }
     /**
@@ -134,7 +130,7 @@ public class MatchMaker {
                 return false;
             }
             if(match.size()==MAX_PLAYERS){
-                match.printAndRemovePlayers();
+                match.printAndRemove();
                 return false;
             }
             return match.addPlayer(pl);

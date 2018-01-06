@@ -68,7 +68,7 @@ class Player {
      * Выводит в консоль {@see #UID UID игрока}
      */
     void printPlayer() {
-        System.out.print(UID);
+        System.out.print(UID+"|"+Rank+"|"+getWaitingTime()+"   ");
     }
     /**
      * @return {@see #DateOfRegistration дату регистрации игрока в системе}

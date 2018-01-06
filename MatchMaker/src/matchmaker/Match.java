@@ -25,23 +25,21 @@ import java.util.Queue;
  */
 class Match {    
     /**
-     * Список игроков в матче
+     * Список игроков в матче отсортированые в порядке регистрации
      */
-    public Queue<Player> players;
+    public Queue<Player> players = new PriorityQueue<>(
+            (Player first, Player second) -> {
+                if(first.getDateOfRegistration()>second.getDateOfRegistration()){
+                    return 1;
+                }else 
+                    return 0;
+        });
 
     /**
-     * Инициализация матча
+     * Инициализация матча 
      * @param creator 
      */
-    public Match(Player creator) {
-        players = new PriorityQueue<>((Player first, Player second) -> {
-            if(first.getDateOfRegistration()>second.getDateOfRegistration()){
-                return 1;
-            }else if (first.getDateOfRegistration()<second.getDateOfRegistration()){
-                return -1;
-            } else return 0;
-        }
-        );
+    public Match(Player creator) { 
         players.add(creator);
     }
     
@@ -68,13 +66,14 @@ class Match {
      * @return 
      */
     private boolean playerMeetsTheConditions(Player pl){
-        for (Player player : players) {
+        //Последовательный stream работает быстрее parallelStream
+        return players.stream().allMatch((player) -> {
             int diffRank = Math.abs(player.getRank()-pl.getRank());
-            if(diffRank==0)continue;
+            if(diffRank==0)return true;
             double sumWaiting = player.getWaitingTime()+pl.getWaitingTime();
-            if(diffRank>sumWaiting/5000)return false;
-        }
-        return true;
+            return diffRank <= sumWaiting/50;
+        });
+        
     }
     /**
      * Количество игроков в команде
@@ -95,15 +94,11 @@ class Match {
      * и выводит {@see Player#printPlayer данные игроков} в порядке добавления в матч
      * после чего удаляет их из очереди.
      */
-    public void printAndRemovePlayers(){
+    public void printAndRemove(){
         System.out.print(this.getTimeCreationMatch()+"ms ");
         while(!players.isEmpty())
             players.poll().printPlayer();
         System.out.println("");
     }
-    
-    
-    
-    
-    
+     
 }
