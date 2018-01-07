@@ -16,11 +16,13 @@
  */
 package matchmaker;
 
+import java.io.Serializable;
+
 /**
  * Игрок
  * @author iwantuss
  */
-class Player {
+class Player implements Serializable{
     /**
      * Уникальный идентификатор пользователя
      */
@@ -68,15 +70,12 @@ class Player {
      * Выводит в консоль {@see #UID UID игрока}
      */
     void printPlayer() {
-        System.out.print(UID+"|"+Rank+"|"+getWaitingTime()+"   ");
+        System.out.print(UID+"   ");
     }
     /**
      * @return {@see #DateOfRegistration дату регистрации игрока в системе}
      */
     public Long getDateOfRegistration() {
         return DateOfRegistration;
-    }
-    
-    
-    
+    }    
 }

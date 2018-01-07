@@ -19,6 +19,8 @@ package matchmaker;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 
@@ -31,19 +33,15 @@ public class MatchMaker {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {        
+    public static void main(String[] args) {
+        
+        //Генерируем трафик игроков
+        Stream<Player> traffic = Stream.generate(()->
+                new Player(""+(int)(1+(Math.random()*1000))+"-"+(int)(1000+(Math.random()*10000)),(int)(Math.random()*30))
+        ).limit(1000*8);
         
         
-        for (int i = 0; i < 1000; i++) {//Количество команд
-            for (int j = 0; j < MAX_PLAYERS; j++) {
-                int rank = (int)(1+(Math.random()*30)); //генерация уровня нового игрока
-                    
-                    registrateNewPlayer("["+i+"-"+j+"]", rank);
-            }
-        }        
-        matchmaking();
-        
-        
+        MatchMaker mm = new MatchMaker(8, traffic);
         
     }
     
@@ -51,31 +49,48 @@ public class MatchMaker {
     /**
      * Максимальное количество игроков в матче
      */
-    private static final int MAX_PLAYERS = 8;    
-    /**
-     * Максимальное количество игроков в матче
-     */
-    public static int COUNT = 1;    
-    
+    private final int MAX_PLAYERS;   
     /**
      * Список матчей
      */
-    private static List<Match> matches = new ArrayList<>();
+    private final List<Match> matches = new ArrayList<>();
+    /**
+     * Устанавливает максимальное количество игроков 
+     * @param maxPlayer 
+     * @param traffic 
+     */
+    public MatchMaker(int maxPlayer, Stream<Player> traffic){
+        MAX_PLAYERS = maxPlayer;
+        try {
+            traffic.forEach((pl)-> {
+                registrateNewPlayer(pl);
+            /*/Задержка между регистрациями игроков от 100мс до 500мс
+                try {
+                    Thread.sleep((long)(100+(Math.random()*500)));
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(MatchMaker.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            /*/
+            });
+            //Игроки больше не будут добавляться
+            throw new Exception("Игроки больше не будут заходить в игру...");
+        } catch (Exception ex) {
+            //Logger.getLogger(MatchMaker.class.getName()).log(Level.SEVERE, null, ex);
+            endlessMatchmaking();
+        }
+    }
     
     /**
      * Регистрирует нового пользователя и решает
      * добавить ли его в существующий матч или
      * создать для него новый, потому что он не подходит условиям матча.
-     * @param UID
-     * @param rank 
+     * @param pl
      */
-    public static void  registrateNewPlayer(String UID, Integer rank){
-        Player pl = new Player(UID, rank);
-        
+    private void  registrateNewPlayer(Player pl){
         if(!matches.parallelStream()
                 .filter((match) -> {//Матч должен быть и не пустым, и не полным
                     if(match.size()==MAX_PLAYERS){
-                        match.printAndRemove();
+                        match.print();
                     }
                     return !match.isEmpty();
                 }).anyMatch((match) -> {
@@ -90,7 +105,7 @@ public class MatchMaker {
      * Метод объединяющий созданные матчи до тех пор, пока
      * список матчей не станет пустым
      */
-    private static void matchmaking() {
+    private void endlessMatchmaking() {
         while(matches.size()>1)
             for (int i = 1; i < matches.size(); i++) {
                 //Производим цикл по игрокам i-ой команды
@@ -101,9 +116,14 @@ public class MatchMaker {
                     else {i--;break;}
                 }
                 
-
-Finisher();
+            Finisher();
+            //Приостанавливаем поток, чтобы цикл не нагружал процессор
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(MatchMaker.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
         
     }
     /**
@@ -111,7 +131,7 @@ Finisher();
      * @param pl перемещаемый игрок
      * @return true если игрок был перемещен в новый матч
      */
-    private static boolean replacePlayer(Player pl){        
+    private boolean replacePlayer(Player pl){        
         
         for (Iterator<Match> it = matches.iterator(); it.hasNext();) {
             
@@ -121,24 +141,23 @@ Finisher();
                 return false;
             }
             if(match.size()==MAX_PLAYERS){
-                match.printAndRemove();
+                match.print();
                 return false;
             }
             return match.addPlayer(pl);
             
         }
-        Finisher();
-        matches.add(new Match(pl));
-        return true;
+        
+        return false;
     }
     
     /**
      * Удаляет пустые матчи и выводит на экран заполненые
      */
-    private static void Finisher(){
-        matches.removeIf((match)-> {
+    private boolean Finisher(){
+        return matches.removeIf((match)-> {
                     if(match.size()==MAX_PLAYERS){
-                        match.printAndRemove();
+                        match.print();
                     }
                     return match.isEmpty();
         });

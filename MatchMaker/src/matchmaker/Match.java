@@ -32,7 +32,7 @@ class Match {
                 if(first.getDateOfRegistration()>second.getDateOfRegistration()){
                     return 1;
                 }else 
-                    return 0;
+                    return -1;
         });
 
     /**
@@ -57,7 +57,7 @@ class Match {
      * @return true - если игрок был добавлен
      */
     public boolean addPlayer(Player player){
-        return playerMeetsTheConditions(player) ? players.add(player) : false;
+        return isLike(player) ? players.add(player) : false;
     }
     
     /**
@@ -65,7 +65,7 @@ class Match {
      * @param pl
      * @return 
      */
-    private boolean playerMeetsTheConditions(Player pl){
+    private boolean isLike(Player pl){
         //Последовательный stream работает быстрее parallelStream
         return players.stream().allMatch((player) -> {
             int diffRank = Math.abs(player.getRank()-pl.getRank());
@@ -94,9 +94,9 @@ class Match {
      * и выводит {@see Player#printPlayer данные игроков} в порядке добавления в матч
      * после чего удаляет их из очереди.
      */
-    public void printAndRemove(){
+    public void print(){
         
-        System.out.print("["+(MatchMaker.COUNT++)+"]"+this.getTimeCreationMatch()+"ms ");
+        System.out.print(""+this.getTimeCreationMatch()+"ms ");
         while(!players.isEmpty())
             players.poll().printPlayer();
         System.out.println("");
